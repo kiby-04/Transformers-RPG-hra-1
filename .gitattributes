@@ -1,2 +1,600 @@
-# Auto detect text files and perform LF normalization
+# Au#include <iostream>
+#include <string>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+struct Item {
+    string name;
+    string rarity;
+    string type;
+    int value;
+    string desc;
+};
+
+struct Character {
+    string name;
+    int maxHP;
+    int hp;
+    int damage;
+    int abilityUses;
+    bool shield;
+    string abilityName;
+    string abilityDesc;
+};
+
+struct Enemy {
+    string name;
+    int maxHP;
+    int hp;
+    int damage;
+    bool stunned;
+};
+
+Item inventory[20];
+int invCount = 0;
+
+int coins = 0;
+int selectedChar = 0;
+
+// ================= ITEM =================
+Item dropItem() {
+
+    int r = rand()%100;
+
+    if(r<25) return {"Medkit","RARE","heal",70,"vyleci 70 HP"};
+    if(r<50) return {"Granat","RARE","damage",85,"85 damage"};
+    if(r<70) return {"Fullkit","EPIC","heal",120,"120 HP"};
+    if(r<90) return {"Hammer of solus prime","EPIC","damage",120,"120 damage"};
+
+    return {"Starsaber","LEGENDARY","damage",500,"500 damage"};
+}
+
+// ================= SHOP =================
+Item shopItem() {
+
+    int r = rand()%100;
+
+    if(r<30) return {"Small Medkit","RARE","heal",60,"vyleci 60 HP"};
+    if(r<60) return {"Grenade","RARE","damage",80,"80 damage"};
+    if(r<85) return {"Big Heal","EPIC","heal",120,"120 HP"};
+
+    return {"Cyber Blade","LEGENDARY","damage",150,"150 damage"};
+}
+
+void intro() {
+    cout<<"Deceptikoni napadli Zemi.\n";
+    cout<<"Ty jako Autobot musis zastavit invazi.\n\n";
+}
+
+void showCharacter(Character p) {
+
+    cout<<"POSTAVA: "<<p.name<<endl;
+    cout<<"HP: "<<p.maxHP<<endl;
+    cout<<"Damage: "<<p.damage<<endl;
+    cout<<"ABILITY: "<<p.abilityName<<endl;
+    cout<<"POPIS: "<<p.abilityDesc<<endl;
+    cout<<"POUZITI: "<<p.abilityUses<<endl<<endl;
+}
+
+void showEnemy(Enemy e) {
+
+    cout<<"NEPRITEL: "<<e.name<<endl;
+    cout<<"HP: "<<e.hp<<"/"<<e.maxHP<<endl;
+    cout<<"Damage: "<<e.damage<<endl<<endl;
+}
+
+// ================= INVENTORY =================
+bool useItem(Character &p,Enemy &e){
+
+    if(invCount==0){
+        cout<<"Inventar je prazdny.\n";
+        return false;
+    }
+
+    cout<<"INVENTAR:\n";
+
+    for(int i=0;i<invCount;i++)
+        cout<<i<<" "<<inventory[i].name<<" - "<<inventory[i].desc<<endl;
+
+    int c;
+    cin>>c;
+
+    if(c<0 || c>=invCount){
+        cout<<"Spatna volba.\n";
+        return false;
+    }
+
+    Item it=inventory[c];
+
+    cout<<"Pouzil jsi: "<<it.name<<endl;
+
+    if(it.type=="heal"){
+        int before=p.hp;
+        p.hp+=it.value;
+        if(p.hp>p.maxHP)p.hp=p.maxHP;
+        cout<<"Heal +"<<(p.hp-before)<<"\n";
+    }
+
+    if(it.type=="damage"){
+        e.hp-=it.value;
+        cout<<"Enemy dmg -"<<it.value<<"\n";
+    }
+
+    for(int i=c;i<invCount-1;i++)
+        inventory[i]=inventory[i+1];
+
+    invCount--;
+
+    return true;
+}
+
+// ================= MINI BOSS =================
+Enemy miniBoss(int hero){
+
+    if(hero==1) return {"Starscream",300,300,50,false};
+    if(hero==2) return {"Soundwave",280,280,40,false};
+    return {"Shockblast",320,320,55,false};
+}
+
+// ================= VESNICE =================
+void village(Character &p){
+
+    while(true){
+
+        cout<<"\n=== VESNICE ===\n";
+        cout<<"Coins: "<<coins<<"\n";
+        cout<<"HP: "<<p.hp<<"/"<<p.maxHP<<"\n";
+
+        Item shop[3]={shopItem(),shopItem(),shopItem()};
+
+        cout<<"\n=== SHOP (100 coins) ===\n";
+        for(int i=0;i<3;i++){
+            cout<<i<<") "<<shop[i].name<<" - "<<shop[i].desc<<"\n";
+        }
+
+        cout<<"\n1 heal full (60 coins)\n2 buy item\n0 pokracovat\n";
+
+        int c;
+        cin>>c;
+
+        if(c==1 && coins>=60){
+            p.hp=p.maxHP;
+            coins-=60;
+            cout<<"HP full\n";
+        }
+
+        if(c==2){
+            cout<<"Vyber item (0-2): ";
+            int x;
+            cin>>x;
+
+            if(x>=0 && x<3 && coins>=100){
+                inventory[invCount++]=shop[x];
+                coins-=100;
+                cout<<"Koupen item\n";
+            }
+        }
+
+        if(c==0){
+            cout<<"Leaving village...\n";
+            break;
+        }
+    }
+}
+
+// ================= FIGHT =================
+bool fight(Character &p,Enemy &e){
+
+    cout<<"\n=== ENEMY ===\n";
+    showEnemy(e);
+
+    while(p.hp>0 && e.hp>0){
+
+        cout<<"\nHP "<<p.hp<<" | "<<e.name<<" HP "<<e.hp<<endl;
+        cout<<"1 utok 2 ability 3 inventar\n";
+
+        int c;
+        cin>>c;
+
+        if(c==1){
+            e.hp-=p.damage;
+            cout<<"dmg "<<p.damage<<"\n";
+        }
+
+        if(c==2){
+
+            if(p.abilityUses<=0){
+                cout<<"No ability\n";
+                continue;
+            }
+
+            if(p.name=="Optimus Prime"){
+                p.hp+=100;
+                if(p.hp>p.maxHP)p.hp=p.maxHP;
+                cout<<"Matrix of leader ship\n";
+            }
+
+            if(p.name=="Bumblebee"){
+                e.hp-=200;
+                cout<<"laser shot\n";
+            }
+
+            if(p.name=="Ironhide"){
+                e.hp-=100;
+                cout<<"iron fist\n";
+            }
+
+            p.abilityUses--;
+        }
+
+        if(c==3){
+            if(!useItem(p,e)) continue;
+        }
+
+       if(e.hp>0){
+
+    if(e.name=="UNICRON"){
+
+        static int unicronTurns = 0;
+        unicronTurns++;
+
+        int healAmount = 20; // uprav si
+        e.hp += healAmount;
+
+        if(e.hp > e.maxHP)
+            e.hp = e.maxHP;
+
+        cout<<"UNICRON se vylecil o "
+            <<healAmount
+            <<" HP\n";
+
+        int damageToPlayer = e.damage;
+
+        if(rand()%100 < 25){
+
+            damageToPlayer *= 2;
+
+            cout<<"CRITICAL HIT!\n";
+        }
+
+        if(unicronTurns % 3 == 0){
+
+            int damageBoost = 10; // uprav si
+
+            e.damage += damageBoost;
+
+            cout<<"UNICRON zesilil! Damage +"
+                <<damageBoost
+                <<endl;
+        }
+
+        p.hp -= damageToPlayer;
+    }
+    else{
+
+        p.hp -= e.damage;
+    }
+}
+    }
+
+    Item drop=dropItem();
+    inventory[invCount++]=drop;
+
+    int reward = 10 + rand()%100;
+    coins += reward;
+
+    cout<<"\nZISK: "<<drop.name<<" + "<<reward<<" coins\n";
+
+    return p.hp>0;
+}
+bool fightMulti(Character &p, Enemy enemies[], int enemyCount){
+
+    cout << "\n=== ENEMIES ===\n";
+
+    while(p.hp > 0){
+
+        bool allDead = true;
+
+        for(int i=0;i<enemyCount;i++){
+            if(enemies[i].hp > 0){
+                allDead = false;
+                break;
+            }
+        }
+
+        if(allDead) break;
+
+        cout << "\nTVE HP: " << p.hp << "\n";
+
+        for(int i=0;i<enemyCount;i++){
+            if(enemies[i].hp > 0){
+                cout << i+1 << ") "
+                     << enemies[i].name
+                     << " HP "
+                     << enemies[i].hp
+                     << "/"
+                     << enemies[i].maxHP
+                     << endl;
+            }
+        }
+
+        cout << "\n1 utok 2 ability 3 inventar\n";
+
+        int c;
+        cin >> c;
+
+        int target;
+
+        cout << "Vyber cil: ";
+        cin >> target;
+
+        target--;
+
+        if(target < 0 ||
+           target >= enemyCount ||
+           enemies[target].hp <= 0){
+            cout << "Spatny cil\n";
+            continue;
+        }
+
+        if(c==1){
+
+            enemies[target].hp -= p.damage;
+
+            cout<<"dmg "<<p.damage<<"\n";
+        }
+
+        if(c==2){
+
+            if(p.abilityUses<=0){
+                cout<<"No ability\n";
+                continue;
+            }
+
+            if(p.name=="Optimus Prime"){
+                p.hp+=100;
+                if(p.hp>p.maxHP)p.hp=p.maxHP;
+                cout<<"Matrix of leader ship\n";
+            }
+
+            if(p.name=="Bumblebee"){
+                enemies[target].hp-=200;
+                cout<<"laser shot\n";
+            }
+
+            if(p.name=="Ironhide"){
+                enemies[target].hp-=100;
+                cout<<"iron fist\n";
+            }
+
+            p.abilityUses--;
+        }
+
+        if(c==3){
+
+            if(invCount==0){
+                cout<<"Inventar je prazdny.\n";
+                continue;
+            }
+
+            cout<<"INVENTAR:\n";
+
+            for(int i=0;i<invCount;i++)
+                cout<<i<<" "<<inventory[i].name<<" - "<<inventory[i].desc<<endl;
+
+            int itemChoice;
+            cin>>itemChoice;
+
+            if(itemChoice<0 || itemChoice>=invCount){
+                cout<<"Spatna volba.\n";
+                continue;
+            }
+
+            Item it=inventory[itemChoice];
+
+            if(it.type=="heal"){
+                p.hp+=it.value;
+                if(p.hp>p.maxHP)p.hp=p.maxHP;
+            }
+
+            if(it.type=="damage"){
+                enemies[target].hp-=it.value;
+            }
+
+            for(int i=itemChoice;i<invCount-1;i++)
+                inventory[i]=inventory[i+1];
+
+            invCount--;
+        }
+
+        for(int i=0;i<enemyCount;i++){
+
+            if(enemies[i].hp>0){
+
+                cout<<enemies[i].name
+                    <<" utoci za "
+                    <<enemies[i].damage
+                    <<endl;
+
+                p.hp-=enemies[i].damage;
+            }
+        }
+    }
+
+    if(p.hp<=0)
+        return false;
+
+    for(int i=0;i<enemyCount;i++){
+
+        Item drop=dropItem();
+
+        inventory[invCount++]=drop;
+
+        int reward = 10 + rand()%100;
+
+        coins += reward;
+
+        cout<<"\nZISK: "
+            <<drop.name
+            <<" + "
+            <<reward
+            <<" coins\n";
+    }
+
+    return true;
+}
+
+// ================= CHARACTER SELECT =================
+int selectCharacter(){
+
+    while(true){
+
+        cout<<"\n=== VYBER POSTAVU ===\n";
+        cout<<"1 Optimus\n2 Bumblebee\n3 Ironhide\n";
+
+        int c;
+        cin>>c;
+
+        if(c>=0 && c<=3){
+            return c;
+        }
+    }
+}
+
+// ================= MAIN =================
+int main(){
+
+    srand(time(0));
+    intro();
+
+    Character p;
+
+    while(true){
+
+        selectedChar = selectCharacter();
+        if(selectedChar == 0) return 0;
+
+        if(selectedChar==1)p={"Optimus Prime",130,130,80,1,false,"Matrix","+100 HP"};
+        if(selectedChar==2)p={"Bumblebee",150,150,60,1,false,"Laser","200 dmg"};
+        if(selectedChar==3)p={"Ironhide",250,250,40,2,false,"Fist","100 dmg"};
+
+        showCharacter(p);
+
+        cout<<"\n1 pokracovat  2 zpet na vyber\n";
+
+        int x;
+        cin>>x;
+
+        if(x==2) continue;
+
+        break;
+    }
+
+    // ================= PHASE 1 =================
+    for(int w=0; w<3; w++){
+
+        Enemy e;
+
+        if(w==0) e={"Autocon",90,90,30,false};
+        else if(w==1) e={"Barricade",120,120,35,false};
+        else e={"Blitzwing",140,140,38,false};
+
+        if(!fight(p,e)){
+            cout<<"porazili te enemaci\n";
+            return 0;
+        }
+    }
+
+    village(p);
+
+    // ================= PHASE 2 =================
+    for(int w=0; w<3; w++){
+
+        Enemy e;
+
+        if(w==0) e={"Hook",160,160,40,false};
+        else if(w==1) e={"Shockwave",180,180,42,false};
+        else e={"Bludgeon",200,200,45,false};
+
+        if(!fight(p,e)){
+            cout<<"porazili te enemaci\n";
+            return 0;
+        }
+    }
+
+    village(p);
+
+    // ================= MINI BOSS =================
+    cout<<"\n=== MINI BOSS ===\n";
+
+    Enemy mb=miniBoss(selectedChar);
+
+    if(!fight(p,mb)){
+        cout<<"porazili te enemaci\n";
+        return 0;
+    }
+
+    coins+=100;
+
+
+    village(p);
+cout<<"\n=== KOLO 1 ===\n";
+
+Enemy e1={"nok",160,160,40,false};
+
+if(!fight(p,e1)){
+    cout<<"porazili te enemaci\n";
+    return 0;
+}
+
+cout<<"\n=== KOLO 2 ===\n";
+
+Enemy round2[2]={
+    {"shon",120,120,20,false},
+    {"crusher",140,140,15,false}
+};
+
+if(!fightMulti(p,round2,2)){
+    cout<<"porazili te enemaci\n";
+    return 0;
+}
+
+cout<<"\n=== KOLO 3 ===\n";
+
+Enemy round3[3]={
+    {"prawn",150,150,15,false},
+    {"skywarp",170,170,12,false},
+    {"thundercracker",180,180,20,false}
+};
+
+if(!fightMulti(p,round3,3)){
+    cout<<"porazili te enemaci\n";
+    return 0;
+}
+
+cout << "Enemy 3/3\n";
+Enemy e6 = {"thundercracker",180,180,30,false};
+
+if(!fight(p,e6)){
+    cout<<"porazili te enemaci\n";
+    return 0;
+}
+
+    // ================= SECRET BOSS =================
+    cout<<"\n=== SECRET BOSS ===\n";
+
+    Enemy sb={"UNICRON",500,500,57,false};
+
+    if(!fight(p,sb)){
+        cout<<"jsi mrtev\n";
+        return 0;
+    }
+
+    cout<<"\nporazil jsi nejvyssi zlo\nCoins: "<<coins<<"\n";
+
+    return 0;
+}
+to detect text files and perform LF normalization
 * text=auto
