@@ -585,5 +585,3 @@ if(!fight(p,e6)){
 
     return 0;
 }
-to detect text files and perform LF normalization
-* text=auto
