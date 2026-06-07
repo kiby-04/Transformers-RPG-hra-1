@@ -1,4 +1,4 @@
-# Au#include <iostream>
+#include <iostream>
 #include <string>
 #include <ctime>
 #include <cstdlib>
@@ -37,6 +37,8 @@ int invCount = 0;
 
 int coins = 0;
 int selectedChar = 0;
+int xp = 0;
+int level = 1;
 
 Item dropItem() {
 
@@ -81,6 +83,22 @@ void showEnemy(Enemy e) {
     cout<<"NEPRITEL: "<<e.name<<endl;
     cout<<"HP: "<<e.hp<<"/"<<e.maxHP<<endl;
     cout<<"Damage: "<<e.damage<<endl<<endl;
+}
+void checkLevelUp(Character &p){
+
+    while(level < 4 && xp >= level * 30){
+
+        level++;
+
+        p.maxHP += 15;
+        p.hp += 15;
+        p.damage += 5;
+
+        cout << "\n=== LEVEL UP ===\n";
+        cout << "Level: " << level << endl;
+        cout << "+15 MAX HP\n";
+        cout << "+5 DAMAGE\n";
+    }
 }
 
 bool useItem(Character &p,Enemy &e){
@@ -280,6 +298,12 @@ bool fight(Character &p,Enemy &e){
     int reward = 10 + rand()%100;
     coins += reward;
 
+    xp += 15;
+
+    cout << "XP +15\n";
+
+    checkLevelUp(p);
+
     cout<<"\nZISK: "<<drop.name<<" + "<<reward<<" coins\n";
 
     return p.hp>0;
@@ -431,12 +455,17 @@ bool fightMulti(Character &p, Enemy enemies[], int enemyCount){
 
         coins += reward;
 
+        xp += 15;
+
         cout<<"\nZISK: "
             <<drop.name
             <<" + "
             <<reward
             <<" coins\n";
     }
+cout << "XP +" << enemyCount * 15 << endl;
+
+checkLevelUp(p);
 
     return true;
 }
