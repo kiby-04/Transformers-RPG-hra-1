@@ -38,7 +38,6 @@ int invCount = 0;
 int coins = 0;
 int selectedChar = 0;
 
-// ================= ITEM =================
 Item dropItem() {
 
     int r = rand()%100;
@@ -51,7 +50,6 @@ Item dropItem() {
     return {"Starsaber","LEGENDARY","damage",500,"500 damage"};
 }
 
-// ================= SHOP =================
 Item shopItem() {
 
     int r = rand()%100;
@@ -85,7 +83,6 @@ void showEnemy(Enemy e) {
     cout<<"Damage: "<<e.damage<<endl<<endl;
 }
 
-// ================= INVENTORY =================
 bool useItem(Character &p,Enemy &e){
 
     if(invCount==0){
@@ -130,7 +127,6 @@ bool useItem(Character &p,Enemy &e){
     return true;
 }
 
-// ================= MINI BOSS =================
 Enemy miniBoss(int hero){
 
     if(hero==1) return {"Starscream",300,300,50,false};
@@ -138,7 +134,6 @@ Enemy miniBoss(int hero){
     return {"Shockblast",320,320,55,false};
 }
 
-// ================= VESNICE =================
 void village(Character &p){
 
     while(true){
@@ -184,7 +179,6 @@ void village(Character &p){
     }
 }
 
-// ================= FIGHT =================
 bool fight(Character &p,Enemy &e){
 
     cout<<"\n=== ENEMY ===\n";
@@ -446,7 +440,6 @@ bool fightMulti(Character &p, Enemy enemies[], int enemyCount){
     return true;
 }
 
-// ================= CHARACTER SELECT =================
 int selectCharacter(){
 
     while(true){
@@ -463,7 +456,6 @@ int selectCharacter(){
     }
 }
 
-// ================= MAIN =================
 int main(){
 
     srand(time(0));
@@ -492,7 +484,6 @@ int main(){
         break;
     }
 
-    // ================= PHASE 1 =================
     for(int w=0; w<3; w++){
 
         Enemy e;
@@ -509,7 +500,6 @@ int main(){
 
     village(p);
 
-    // ================= PHASE 2 =================
     for(int w=0; w<3; w++){
 
         Enemy e;
@@ -526,7 +516,6 @@ int main(){
 
     village(p);
 
-    // ================= MINI BOSS =================
     cout<<"\n=== MINI BOSS ===\n";
 
     Enemy mb=miniBoss(selectedChar);
@@ -582,7 +571,6 @@ if(!fight(p,e6)){
     return 0;
 }
 
-    // ================= SECRET BOSS =================
     cout<<"\n=== SECRET BOSS ===\n";
 
     Enemy sb={"UNICRON",500,500,57,false};
